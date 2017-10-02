@@ -54,10 +54,20 @@ var (
 	stringDict = map[string]*String{}
 )
 
+func init() {
+	if isClient {
+		Addr = DefaultClientAddr
+	} else {
+		Addr = DefaultServerAddr
+	}
+}
+
 func getAndOrPostIfServer() {
 	if started || isClient {
 		return
 	}
+
+	http.Handle("/", http.FileServer(http.Dir("www")))
 
 	http.HandleFunc("/"+POST, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
@@ -94,11 +104,7 @@ func getAndOrPostIfServer() {
 		w.Write(b)
 	})
 
-	if len(Addr) == 0 {
-		Addr = DefaultServerAddr
-	}
 	go log.Fatal(http.ListenAndServe(Addr, nil))
-
 	started = true
 }
 
@@ -106,9 +112,7 @@ func postIfClient(w chan []byte, t byte, name string) {
 	if !isClient {
 		return
 	}
-	if len(Addr) == 0 {
-		Addr = DefaultClientAddr
-	} else if Addr[len(Addr)-1] != '/' {
+	if Addr[len(Addr)-1] != '/' {
 		Addr += "/"
 	}
 	for {
@@ -126,9 +130,7 @@ func getIfClient(r chan []byte, t byte, name string) {
 	if !isClient {
 		return
 	}
-	if len(Addr) == 0 {
-		Addr = DefaultClientAddr
-	} else if Addr[len(Addr)-1] != '/' {
+	if Addr[len(Addr)-1] != '/' {
 		Addr += "/"
 	}
 	for {
