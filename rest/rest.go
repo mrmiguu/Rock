@@ -45,17 +45,17 @@ const (
 )
 
 var (
-	Addr string
+	Addr     string
+	IsClient = js.Global != nil
 
-	isClient = js.Global == nil
-	v        = []byte(V)
-	started  bool
+	v       = []byte(V)
+	started bool
 
 	stringDict = map[string]*String{}
 )
 
 func init() {
-	if isClient {
+	if IsClient {
 		Addr = DefaultClientAddr
 	} else {
 		Addr = DefaultServerAddr
@@ -63,7 +63,7 @@ func init() {
 }
 
 func getAndOrPostIfServer() {
-	if started || isClient {
+	if started || IsClient {
 		return
 	}
 
@@ -104,12 +104,12 @@ func getAndOrPostIfServer() {
 		w.Write(b)
 	})
 
-	go log.Fatal(http.ListenAndServe(Addr, nil))
+	go func() { log.Fatal(http.ListenAndServe(Addr, nil)) }()
 	started = true
 }
 
 func postIfClient(w chan []byte, t byte, name string) {
-	if !isClient {
+	if !IsClient {
 		return
 	}
 	if Addr[len(Addr)-1] != '/' {
@@ -127,7 +127,7 @@ func postIfClient(w chan []byte, t byte, name string) {
 }
 
 func getIfClient(r chan []byte, t byte, name string) {
-	if !isClient {
+	if !IsClient {
 		return
 	}
 	if Addr[len(Addr)-1] != '/' {
