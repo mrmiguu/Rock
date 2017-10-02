@@ -39,16 +39,16 @@ func getAndOrPostIfServer() {
 			stringDict.RLock()
 			S := stringDict.m[name]
 			stringDict.RUnlock()
-			S.w.RLock()
-			C := S.r.c
-			S.w.RUnlock()
+			S.p.w.RLock()
+			C := S.p.r.c
+			S.p.w.RUnlock()
 			C <- body
 		default:
 			panic("bad message type")
 		}
 	})
 
-	http.HandleFunc("/"+GET, func(w http.ResponseWriter, r *http.Request) {
+	go http.HandleFunc("/"+GET, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		defer r.Body.Close()
 		b, err := ioutil.ReadAll(r.Body)
@@ -62,12 +62,12 @@ func getAndOrPostIfServer() {
 			stringDict.RLock()
 			S := stringDict.m[name]
 			stringDict.RUnlock()
-			S.w.RLock()
-			C := S.w.c
-			S.w.RUnlock()
-			S.n.RLock()
-			N := S.n.c
-			S.n.RUnlock()
+			S.p.w.RLock()
+			C := S.p.w.c
+			S.p.w.RUnlock()
+			S.p.n.RLock()
+			N := S.p.n.c
+			S.p.n.RUnlock()
 			N <- 1
 			b = <-C
 		default:
@@ -76,7 +76,7 @@ func getAndOrPostIfServer() {
 		w.Write(b)
 	})
 
-	go func() { log.Fatal(http.ListenAndServe(Addr, nil)) }()
+	log.Fatal(http.ListenAndServe(Addr, nil))
 	started.b = true
 }
 

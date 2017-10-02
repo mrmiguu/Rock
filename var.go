@@ -13,7 +13,7 @@ var (
 	v = []byte(V)
 
 	started struct {
-		sync.RWMutex
+		sync.Mutex
 		b bool
 	}
 
