@@ -1,7 +1,10 @@
-package rest
+package rock
 
-import "github.com/gopherjs/gopherjs/js"
-import "sync"
+import (
+	"sync"
+
+	"github.com/gopherjs/gopherjs/js"
+)
 
 var (
 	Addr     string

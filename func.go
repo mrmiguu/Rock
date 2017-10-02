@@ -1,4 +1,4 @@
-package rest
+package rock
 
 import (
 	"bytes"
@@ -65,6 +65,10 @@ func getAndOrPostIfServer() {
 			S.w.RLock()
 			C := S.w.c
 			S.w.RUnlock()
+			S.n.RLock()
+			N := S.n.c
+			S.n.RUnlock()
+			N <- 1
 			b = <-C
 		default:
 			panic("bad message type")

@@ -1,6 +1,6 @@
-package rest
+package rock
 
-func (S *String) Post(s string) {
+func (S *String) To(s string) {
 	getAndOrPostIfServer()
 
 	stringDict.Lock()
@@ -19,10 +19,27 @@ func (S *String) Post(s string) {
 	}
 	S.w.Unlock()
 
-	S.w.c <- []byte(s)
+	if IsClient {
+		S.w.c <- []byte(s)
+		return
+	}
+
+	S.n.Lock()
+	if S.n.c == nil {
+		S.n.c = make(chan int)
+	}
+	N := S.n.c
+	S.n.Unlock()
+	for {
+		<-N
+		S.w.c <- []byte(s)
+		if len(N) == 0 {
+			break
+		}
+	}
 }
 
-func (S *String) Get() string {
+func (S *String) From() string {
 	getAndOrPostIfServer()
 
 	stringDict.Lock()

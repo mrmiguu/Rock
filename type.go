@@ -1,4 +1,4 @@
-package rest
+package rock
 
 import (
 	"sync"
@@ -12,7 +12,13 @@ type Bool struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type String struct {
 	Name string
 	Len  uint
@@ -21,7 +27,13 @@ type String struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Int struct {
 	Name string
 	Len  uint
@@ -30,7 +42,13 @@ type Int struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Int8 struct {
 	Name string
 	Len  uint
@@ -39,7 +57,13 @@ type Int8 struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Int16 struct {
 	Name string
 	Len  uint
@@ -48,7 +72,13 @@ type Int16 struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Int32 struct {
 	Name string
 	Len  uint
@@ -57,7 +87,13 @@ type Int32 struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Int64 struct {
 	Name string
 	Len  uint
@@ -66,7 +102,13 @@ type Int64 struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Uint struct {
 	Name string
 	Len  uint
@@ -75,7 +117,13 @@ type Uint struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Uint8 struct {
 	Name string
 	Len  uint
@@ -84,7 +132,13 @@ type Uint8 struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Uint16 struct {
 	Name string
 	Len  uint
@@ -93,7 +147,13 @@ type Uint16 struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Uint32 struct {
 	Name string
 	Len  uint
@@ -102,7 +162,13 @@ type Uint32 struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Uint64 struct {
 	Name string
 	Len  uint
@@ -111,7 +177,13 @@ type Uint64 struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Uintptr struct {
 	Name string
 	Len  uint
@@ -120,7 +192,13 @@ type Uintptr struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Byte struct {
 	Name string
 	Len  uint
@@ -129,7 +207,13 @@ type Byte struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Bytes struct {
 	Name string
 	Len  uint
@@ -138,7 +222,13 @@ type Bytes struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Rune struct {
 	Name string
 	Len  uint
@@ -147,7 +237,13 @@ type Rune struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Float32 struct {
 	Name string
 	Len  uint
@@ -156,7 +252,13 @@ type Float32 struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Float64 struct {
 	Name string
 	Len  uint
@@ -165,7 +267,13 @@ type Float64 struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Complex64 struct {
 	Name string
 	Len  uint
@@ -174,7 +282,13 @@ type Complex64 struct {
 		sync.RWMutex
 		c chan []byte
 	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
+	}
 }
+
 type Complex128 struct {
 	Name string
 	Len  uint
@@ -182,5 +296,10 @@ type Complex128 struct {
 	w, r struct {
 		sync.RWMutex
 		c chan []byte
+	}
+
+	n struct {
+		sync.RWMutex
+		c chan int
 	}
 }
