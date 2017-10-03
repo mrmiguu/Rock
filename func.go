@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 func init() {
@@ -16,9 +17,7 @@ func init() {
 }
 
 func getAndOrPostIfServer() {
-	started.Lock()
-	defer started.Lock()
-	if started.b || IsClient {
+	if IsClient {
 		return
 	}
 
@@ -27,57 +26,69 @@ func getAndOrPostIfServer() {
 
 	http.HandleFunc("/"+POST, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
-		defer r.Body.Close()
 		b, err := ioutil.ReadAll(r.Body)
+		r.Body.Close()
 		if err != nil {
+			delayedError(w, http.StatusBadRequest)
 			return
 		}
 		parts := bytes.Split(b, v)
 		t, name, body := parts[0][0], string(parts[1]), parts[2]
+
 		switch t {
 		case Tstring:
 			stringDict.RLock()
-			S := stringDict.m[name]
+			S, found := stringDict.m[name]
 			stringDict.RUnlock()
-			S.p.w.RLock()
-			C := S.p.r.c
-			S.p.w.RUnlock()
-			C <- body
+			if !found {
+				delayedError(w, http.StatusNotFound)
+				return
+			}
+			S.p.r.Do(S.makeR)
+			S.p.r.c <- body
 		default:
-			panic("bad message type")
+			delayedError(w, http.StatusBadRequest)
 		}
 	})
 
-	go http.HandleFunc("/"+GET, func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/"+GET, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
-		defer r.Body.Close()
 		b, err := ioutil.ReadAll(r.Body)
+		r.Body.Close()
 		if err != nil {
+			delayedError(w, http.StatusBadRequest)
 			return
 		}
 		parts := bytes.Split(b, v)
 		t, name := parts[0][0], string(parts[1])
+
 		switch t {
 		case Tstring:
 			stringDict.RLock()
-			S := stringDict.m[name]
+			S, found := stringDict.m[name]
 			stringDict.RUnlock()
-			S.p.w.RLock()
-			C := S.p.w.c
-			S.p.w.RUnlock()
-			S.p.n.RLock()
-			N := S.p.n.c
-			S.p.n.RUnlock()
-			N <- 1
-			b = <-C
+			if !found {
+				delayedError(w, http.StatusNotFound)
+				return
+			}
+			S.p.n.Do(S.makeN)
+			S.p.n.c <- 1
+			S.p.w.Do(S.makeW)
+			b = <-S.p.w.c
 		default:
-			panic("bad message type")
+			delayedError(w, http.StatusBadRequest)
+			return
 		}
+
 		w.Write(b)
 	})
 
 	log.Fatal(http.ListenAndServe(Addr, nil))
-	started.b = true
+}
+
+func delayedError(w http.ResponseWriter, code int) {
+	time.Sleep(ErrorDelay)
+	http.Error(w, "", code)
 }
 
 func postIfClient(w chan []byte, t byte, name string) {

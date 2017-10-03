@@ -2,20 +2,19 @@ package rock
 
 import (
 	"sync"
+	"time"
 
 	"github.com/gopherjs/gopherjs/js"
 )
 
 var (
-	Addr     string
-	IsClient = js.Global != nil
+	Addr       string
+	IsClient   = js.Global != nil
+	ErrorDelay = 2 * time.Second
 
 	v = []byte(V)
 
-	started struct {
-		sync.Mutex
-		b bool
-	}
+	started sync.Once
 
 	boolDict struct {
 		sync.RWMutex

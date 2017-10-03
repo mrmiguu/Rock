@@ -146,11 +146,11 @@ type Complex128 struct {
 
 type private struct {
 	w, r struct {
-		sync.RWMutex
+		sync.Once
 		c chan []byte
 	}
 	n struct {
-		sync.RWMutex
+		sync.Once
 		c chan int
 	}
 }

@@ -1,7 +1,21 @@
 package rock
 
+func (S *String) makeW() {
+	S.p.w.c = make(chan []byte, S.Len)
+	go postIfClient(S.p.w.c, Tstring, S.Name)
+}
+
+func (S *String) makeR() {
+	S.p.r.c = make(chan []byte, S.Len)
+	go getIfClient(S.p.r.c, Tstring, S.Name)
+}
+
+func (S *String) makeN() {
+	S.p.n.c = make(chan int)
+}
+
 func (S *String) To(s string) {
-	go getAndOrPostIfServer()
+	go started.Do(getAndOrPostIfServer)
 
 	stringDict.Lock()
 	if stringDict.m == nil {
@@ -12,36 +26,24 @@ func (S *String) To(s string) {
 	}
 	stringDict.Unlock()
 
-	S.p.w.Lock()
-	if S.p.w.c == nil {
-		S.p.w.c = make(chan []byte, S.Len)
-		go postIfClient(S.p.w.c, Tstring, S.Name)
-	}
-	S.p.w.Unlock()
-
+	S.p.w.Do(S.makeW)
 	if IsClient {
 		S.p.w.c <- []byte(s)
 		return
 	}
 
-	S.p.n.Lock()
-	if S.p.n.c == nil {
-		S.p.n.c = make(chan int)
-	}
-	N := S.p.n.c
-	S.p.n.Unlock()
-
+	S.p.n.Do(S.makeN)
 	for {
-		<-N
+		<-S.p.n.c
 		S.p.w.c <- []byte(s)
-		if len(N) == 0 {
+		if len(S.p.n.c) == 0 {
 			break
 		}
 	}
 }
 
 func (S *String) From() string {
-	go getAndOrPostIfServer()
+	go started.Do(getAndOrPostIfServer)
 
 	stringDict.Lock()
 	if stringDict.m == nil {
@@ -52,12 +54,6 @@ func (S *String) From() string {
 	}
 	stringDict.Unlock()
 
-	S.p.w.Lock()
-	if S.p.r.c == nil {
-		S.p.r.c = make(chan []byte, S.Len)
-		go getIfClient(S.p.r.c, Tstring, S.Name)
-	}
-	S.p.w.Unlock()
-
+	S.p.r.Do(S.makeR)
 	return string(<-S.p.r.c)
 }
