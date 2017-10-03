@@ -16,6 +16,10 @@ var (
 
 	started sync.Once
 
+	errorDict struct {
+		sync.RWMutex
+		m map[string]*Error
+	}
 	boolDict struct {
 		sync.RWMutex
 		m map[string]*Bool

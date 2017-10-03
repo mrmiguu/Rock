@@ -7,7 +7,8 @@ const (
 	GET               = "783923e57ba5e8f1044632c31fd806ee24814bb5"
 	V                 = "▼"
 
-	Tbool byte = iota
+	Terror byte = iota
+	Tbool
 	Tstring
 	Tint
 	Tint8

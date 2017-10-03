@@ -5,15 +5,13 @@ import (
 )
 
 func main() {
-	var msg rock.String
+	var i rock.Int
 
-	start := rock.String{Name: "start"}
-	start.To("!")
+	for range [1000]int{} {
+		I := i.From()
+		println(I)
+		i.To(I - 1)
+	}
 
-	for range [100]int{} {
-		msg.From()
-	}
-	for range [100]int{} {
-		msg.To("World")
-	}
+	select {}
 }

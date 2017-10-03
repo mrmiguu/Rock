@@ -36,6 +36,36 @@ func getAndOrPostIfServer() {
 		t, name, body := parts[0][0], string(parts[1]), parts[2]
 
 		switch t {
+		case Terror:
+			errorDict.RLock()
+			E, found := errorDict.m[name]
+			errorDict.RUnlock()
+			if !found {
+				delayedError(w, http.StatusNotFound)
+				return
+			}
+			E.p.r.Do(E.makeR)
+			E.p.r.c <- body
+		case Tbool:
+			boolDict.RLock()
+			B, found := boolDict.m[name]
+			boolDict.RUnlock()
+			if !found {
+				delayedError(w, http.StatusNotFound)
+				return
+			}
+			B.p.r.Do(B.makeR)
+			B.p.r.c <- body
+		case Tint:
+			intDict.RLock()
+			I, found := intDict.m[name]
+			intDict.RUnlock()
+			if !found {
+				delayedError(w, http.StatusNotFound)
+				return
+			}
+			I.p.r.Do(I.makeR)
+			I.p.r.c <- body
 		case Tstring:
 			stringDict.RLock()
 			S, found := stringDict.m[name]
@@ -46,6 +76,16 @@ func getAndOrPostIfServer() {
 			}
 			S.p.r.Do(S.makeR)
 			S.p.r.c <- body
+		case Tbytes:
+			bytesDict.RLock()
+			B, found := bytesDict.m[name]
+			bytesDict.RUnlock()
+			if !found {
+				delayedError(w, http.StatusNotFound)
+				return
+			}
+			B.p.r.Do(B.makeR)
+			B.p.r.c <- body
 		default:
 			delayedError(w, http.StatusBadRequest)
 		}
@@ -63,6 +103,42 @@ func getAndOrPostIfServer() {
 		t, name := parts[0][0], string(parts[1])
 
 		switch t {
+		case Terror:
+			errorDict.RLock()
+			E, found := errorDict.m[name]
+			errorDict.RUnlock()
+			if !found {
+				delayedError(w, http.StatusNotFound)
+				return
+			}
+			E.p.n.Do(E.makeN)
+			E.p.n.c <- 1
+			E.p.w.Do(E.makeW)
+			b = <-E.p.w.c
+		case Tbool:
+			boolDict.RLock()
+			B, found := boolDict.m[name]
+			boolDict.RUnlock()
+			if !found {
+				delayedError(w, http.StatusNotFound)
+				return
+			}
+			B.p.n.Do(B.makeN)
+			B.p.n.c <- 1
+			B.p.w.Do(B.makeW)
+			b = <-B.p.w.c
+		case Tint:
+			intDict.RLock()
+			I, found := intDict.m[name]
+			intDict.RUnlock()
+			if !found {
+				delayedError(w, http.StatusNotFound)
+				return
+			}
+			I.p.n.Do(I.makeN)
+			I.p.n.c <- 1
+			I.p.w.Do(I.makeW)
+			b = <-I.p.w.c
 		case Tstring:
 			stringDict.RLock()
 			S, found := stringDict.m[name]
@@ -75,6 +151,18 @@ func getAndOrPostIfServer() {
 			S.p.n.c <- 1
 			S.p.w.Do(S.makeW)
 			b = <-S.p.w.c
+		case Tbytes:
+			bytesDict.RLock()
+			B, found := bytesDict.m[name]
+			bytesDict.RUnlock()
+			if !found {
+				delayedError(w, http.StatusNotFound)
+				return
+			}
+			B.p.n.Do(B.makeN)
+			B.p.n.c <- 1
+			B.p.w.Do(B.makeW)
+			b = <-B.p.w.c
 		default:
 			delayedError(w, http.StatusBadRequest)
 			return

@@ -4,6 +4,13 @@ import (
 	"sync"
 )
 
+type Error struct {
+	Name string
+	Len  uint
+
+	p private
+}
+
 type Bool struct {
 	Name string
 	Len  uint
