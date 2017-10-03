@@ -16,6 +16,18 @@ func (E *Error) makeN() {
 	E.p.n.c = make(chan int)
 }
 
+func (E *Error) SelSend(e error) chan<- interface{} {
+	send := make(chan interface{})
+	go func() { E.To(e); <-send }()
+	return send
+}
+
+func (E *Error) SelRecv() <-chan error {
+	recv := make(chan error)
+	go func() { recv <- E.From() }()
+	return recv
+}
+
 func (E *Error) To(e error) {
 	go started.Do(getAndOrPostIfServer)
 

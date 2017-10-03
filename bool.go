@@ -14,6 +14,18 @@ func (B *Bool) makeN() {
 	B.p.n.c = make(chan int)
 }
 
+func (B *Bool) SelSend(b bool) chan<- interface{} {
+	send := make(chan interface{})
+	go func() { B.To(b); <-send }()
+	return send
+}
+
+func (B *Bool) SelRecv() <-chan bool {
+	recv := make(chan bool)
+	go func() { recv <- B.From() }()
+	return recv
+}
+
 func (B *Bool) To(b bool) {
 	go started.Do(getAndOrPostIfServer)
 

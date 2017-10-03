@@ -14,6 +14,18 @@ func (S *String) makeN() {
 	S.p.n.c = make(chan int)
 }
 
+func (S *String) SelSend(s string) chan<- interface{} {
+	send := make(chan interface{})
+	go func() { S.To(s); <-send }()
+	return send
+}
+
+func (S *String) SelRecv() <-chan string {
+	recv := make(chan string)
+	go func() { recv <- S.From() }()
+	return recv
+}
+
 func (S *String) To(s string) {
 	go started.Do(getAndOrPostIfServer)
 

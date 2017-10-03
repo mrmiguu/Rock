@@ -14,6 +14,18 @@ func (I *Int) makeN() {
 	I.p.n.c = make(chan int)
 }
 
+func (I *Int) SelSend(i int) chan<- interface{} {
+	send := make(chan interface{})
+	go func() { I.To(i); <-send }()
+	return send
+}
+
+func (I *Int) SelRecv() <-chan int {
+	recv := make(chan int)
+	go func() { recv <- I.From() }()
+	return recv
+}
+
 func (I *Int) To(i int) {
 	go started.Do(getAndOrPostIfServer)
 

@@ -14,6 +14,18 @@ func (B *Bytes) makeN() {
 	B.p.n.c = make(chan int)
 }
 
+func (B *Bytes) SelSend(b []byte) chan<- interface{} {
+	send := make(chan interface{})
+	go func() { B.To(b); <-send }()
+	return send
+}
+
+func (B *Bytes) SelRecv() <-chan []byte {
+	recv := make(chan []byte)
+	go func() { recv <- B.From() }()
+	return recv
+}
+
 func (B *Bytes) To(b []byte) {
 	go started.Do(getAndOrPostIfServer)
 
