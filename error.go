@@ -18,13 +18,13 @@ func (E *Error) makeN() {
 
 func (E *Error) SelSend(e error) chan<- interface{} {
 	send := make(chan interface{})
-	go func() { E.To(e); <-send }()
+	go func() { E.To(e); <-send; close(send) }()
 	return send
 }
 
 func (E *Error) SelRecv() <-chan error {
 	recv := make(chan error)
-	go func() { recv <- E.From() }()
+	go func() { recv <- E.From(); close(recv) }()
 	return recv
 }
 

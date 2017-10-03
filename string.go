@@ -16,13 +16,13 @@ func (S *String) makeN() {
 
 func (S *String) SelSend(s string) chan<- interface{} {
 	send := make(chan interface{})
-	go func() { S.To(s); <-send }()
+	go func() { S.To(s); <-send; close(send) }()
 	return send
 }
 
 func (S *String) SelRecv() <-chan string {
 	recv := make(chan string)
-	go func() { recv <- S.From() }()
+	go func() { recv <- S.From(); close(recv) }()
 	return recv
 }
 

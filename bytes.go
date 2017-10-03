@@ -16,13 +16,13 @@ func (B *Bytes) makeN() {
 
 func (B *Bytes) SelSend(b []byte) chan<- interface{} {
 	send := make(chan interface{})
-	go func() { B.To(b); <-send }()
+	go func() { B.To(b); <-send; close(send) }()
 	return send
 }
 
 func (B *Bytes) SelRecv() <-chan []byte {
 	recv := make(chan []byte)
-	go func() { recv <- B.From() }()
+	go func() { recv <- B.From(); close(recv) }()
 	return recv
 }
 

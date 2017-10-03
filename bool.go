@@ -16,13 +16,13 @@ func (B *Bool) makeN() {
 
 func (B *Bool) SelSend(b bool) chan<- interface{} {
 	send := make(chan interface{})
-	go func() { B.To(b); <-send }()
+	go func() { B.To(b); <-send; close(send) }()
 	return send
 }
 
 func (B *Bool) SelRecv() <-chan bool {
 	recv := make(chan bool)
-	go func() { recv <- B.From() }()
+	go func() { recv <- B.From(); close(recv) }()
 	return recv
 }
 
