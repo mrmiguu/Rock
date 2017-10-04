@@ -7,10 +7,14 @@ import (
 func main() {
 	var i rock.Int
 
+	strt := rock.Int{}
+	strt.S() <- 0
+
+	n := 1
 	for range [1000]int{} {
-		I := i.From()
-		println(I)
-		i.To(I - 1)
+		i.S() <- n
+		n = <-i.R()
+		println(n)
 	}
 
 	select {}

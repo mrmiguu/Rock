@@ -1,18 +1,36 @@
 package main
 
 import (
+	"time"
+
+	"github.com/mrmiguu/Loading"
 	"github.com/mrmiguu/rock"
 )
 
 func main() {
 	var i rock.Int
 
-	I := -1
-	for range [1000]int{} {
-		println(I)
-		i.To(I)
-		I = i.From()
-	}
+	strt := rock.Int{}
+	done := load.New("starting")
+	<-strt.R()
+	done <- true
 
-	select {}
+	timeout := make(chan bool)
+	go func() {
+		time.Sleep(10 * time.Second)
+		timeout <- true
+	}()
+
+	var n int
+	start := time.Now()
+	for {
+		select {
+		case <-timeout:
+			println("timeout!", int(float64(time.Since(start).Nanoseconds())/2000000/float64(n)), "ms")
+			return
+		case n = <-i.R():
+			println(n)
+			i.S() <- n + 1
+		}
+	}
 }

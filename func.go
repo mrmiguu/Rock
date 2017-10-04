@@ -135,7 +135,7 @@ func getAndOrPostIfServer() {
 				delayedError(w, http.StatusNotFound)
 				return
 			}
-			I.p.n.Do(I.makeN)
+			I.p.n.Do(I.makeNIfServer)
 			I.p.n.c <- 1
 			I.p.w.Do(I.makeW)
 			b = <-I.p.w.c

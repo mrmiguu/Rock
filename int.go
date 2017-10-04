@@ -10,7 +10,10 @@ func (I *Int) makeR() {
 	go getIfClient(I.p.r.c, Tint, I.Name)
 }
 
-func (I *Int) makeN() {
+func (I *Int) makeNIfServer() {
+	if IsClient {
+		return
+	}
 	I.p.n.c = make(chan int)
 }
 
@@ -25,18 +28,11 @@ func (I *Int) add() {
 	intDict.Unlock()
 }
 
-func (I *Int) To(i int) {
-	go started.Do(getAndOrPostIfServer)
-
-	I.add()
-
-	I.p.w.Do(I.makeW)
+func (I *Int) to(i int) {
 	if IsClient {
 		I.p.w.c <- int2bytes(i)
 		return
 	}
-
-	I.p.n.Do(I.makeN)
 	for {
 		<-I.p.n.c
 		I.p.w.c <- int2bytes(i)
@@ -46,11 +42,34 @@ func (I *Int) To(i int) {
 	}
 }
 
-func (I *Int) From() int {
-	go started.Do(getAndOrPostIfServer)
-
-	I.add()
-
-	I.p.r.Do(I.makeR)
+func (I *Int) from() int {
 	return bytes2int(<-I.p.r.c)
+}
+
+func (I *Int) S() chan<- int {
+	c := make(chan int, I.Len)
+	go started.Do(getAndOrPostIfServer)
+	I.add()
+	I.p.w.Do(I.makeW)
+	I.p.n.Do(I.makeNIfServer)
+	go func() {
+		I.to(0)
+		i := <-c
+		close(c)
+		I.to(i)
+	}()
+	return c
+}
+
+func (I *Int) R() <-chan int {
+	c := make(chan int, I.Len)
+	go started.Do(getAndOrPostIfServer)
+	I.add()
+	I.p.r.Do(I.makeR)
+	go func() {
+		I.from()
+		c <- I.from()
+		close(c)
+	}()
+	return c
 }
