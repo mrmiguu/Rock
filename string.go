@@ -14,21 +14,7 @@ func (S *String) makeN() {
 	S.p.n.c = make(chan int)
 }
 
-func (S *String) SelSend(s string) chan<- interface{} {
-	send := make(chan interface{})
-	go func() { S.To(s); <-send; close(send) }()
-	return send
-}
-
-func (S *String) SelRecv() <-chan string {
-	recv := make(chan string)
-	go func() { recv <- S.From(); close(recv) }()
-	return recv
-}
-
-func (S *String) To(s string) {
-	go started.Do(getAndOrPostIfServer)
-
+func (S *String) add() {
 	stringDict.Lock()
 	if stringDict.m == nil {
 		stringDict.m = map[string]*String{}
@@ -37,6 +23,12 @@ func (S *String) To(s string) {
 		stringDict.m[S.Name] = S
 	}
 	stringDict.Unlock()
+}
+
+func (S *String) To(s string) {
+	go started.Do(getAndOrPostIfServer)
+
+	S.add()
 
 	S.p.w.Do(S.makeW)
 	if IsClient {
@@ -57,14 +49,7 @@ func (S *String) To(s string) {
 func (S *String) From() string {
 	go started.Do(getAndOrPostIfServer)
 
-	stringDict.Lock()
-	if stringDict.m == nil {
-		stringDict.m = map[string]*String{}
-	}
-	if _, found := stringDict.m[S.Name]; !found {
-		stringDict.m[S.Name] = S
-	}
-	stringDict.Unlock()
+	S.add()
 
 	S.p.r.Do(S.makeR)
 	return string(<-S.p.r.c)

@@ -14,21 +14,7 @@ func (B *Bool) makeN() {
 	B.p.n.c = make(chan int)
 }
 
-func (B *Bool) SelSend(b bool) chan<- interface{} {
-	send := make(chan interface{})
-	go func() { B.To(b); <-send; close(send) }()
-	return send
-}
-
-func (B *Bool) SelRecv() <-chan bool {
-	recv := make(chan bool)
-	go func() { recv <- B.From(); close(recv) }()
-	return recv
-}
-
-func (B *Bool) To(b bool) {
-	go started.Do(getAndOrPostIfServer)
-
+func (B *Bool) add() {
 	boolDict.Lock()
 	if boolDict.m == nil {
 		boolDict.m = map[string]*Bool{}
@@ -37,6 +23,12 @@ func (B *Bool) To(b bool) {
 		boolDict.m[B.Name] = B
 	}
 	boolDict.Unlock()
+}
+
+func (B *Bool) To(b bool) {
+	go started.Do(getAndOrPostIfServer)
+
+	B.add()
 
 	B.p.w.Do(B.makeW)
 	if IsClient {
@@ -57,14 +49,7 @@ func (B *Bool) To(b bool) {
 func (B *Bool) From() bool {
 	go started.Do(getAndOrPostIfServer)
 
-	boolDict.Lock()
-	if boolDict.m == nil {
-		boolDict.m = map[string]*Bool{}
-	}
-	if _, found := boolDict.m[B.Name]; !found {
-		boolDict.m[B.Name] = B
-	}
-	boolDict.Unlock()
+	B.add()
 
 	B.p.r.Do(B.makeR)
 	return bytes2bool(<-B.p.r.c)

@@ -16,21 +16,7 @@ func (E *Error) makeN() {
 	E.p.n.c = make(chan int)
 }
 
-func (E *Error) SelSend(e error) chan<- interface{} {
-	send := make(chan interface{})
-	go func() { E.To(e); <-send; close(send) }()
-	return send
-}
-
-func (E *Error) SelRecv() <-chan error {
-	recv := make(chan error)
-	go func() { recv <- E.From(); close(recv) }()
-	return recv
-}
-
-func (E *Error) To(e error) {
-	go started.Do(getAndOrPostIfServer)
-
+func (E *Error) add() {
 	errorDict.Lock()
 	if errorDict.m == nil {
 		errorDict.m = map[string]*Error{}
@@ -39,6 +25,12 @@ func (E *Error) To(e error) {
 		errorDict.m[E.Name] = E
 	}
 	errorDict.Unlock()
+}
+
+func (E *Error) To(e error) {
+	go started.Do(getAndOrPostIfServer)
+
+	E.add()
 
 	E.p.w.Do(E.makeW)
 	if IsClient {
@@ -59,14 +51,7 @@ func (E *Error) To(e error) {
 func (E *Error) From() error {
 	go started.Do(getAndOrPostIfServer)
 
-	errorDict.Lock()
-	if errorDict.m == nil {
-		errorDict.m = map[string]*Error{}
-	}
-	if _, found := errorDict.m[E.Name]; !found {
-		errorDict.m[E.Name] = E
-	}
-	errorDict.Unlock()
+	E.add()
 
 	E.p.r.Do(E.makeR)
 	return errors.New(string(<-E.p.r.c))

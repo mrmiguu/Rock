@@ -14,21 +14,7 @@ func (I *Int) makeN() {
 	I.p.n.c = make(chan int)
 }
 
-func (I *Int) SelSend(i int) chan<- interface{} {
-	send := make(chan interface{})
-	go func() { I.To(i); <-send; close(send) }()
-	return send
-}
-
-func (I *Int) SelRecv() <-chan int {
-	recv := make(chan int)
-	go func() { recv <- I.From(); close(recv) }()
-	return recv
-}
-
-func (I *Int) To(i int) {
-	go started.Do(getAndOrPostIfServer)
-
+func (I *Int) add() {
 	intDict.Lock()
 	if intDict.m == nil {
 		intDict.m = map[string]*Int{}
@@ -37,6 +23,12 @@ func (I *Int) To(i int) {
 		intDict.m[I.Name] = I
 	}
 	intDict.Unlock()
+}
+
+func (I *Int) To(i int) {
+	go started.Do(getAndOrPostIfServer)
+
+	I.add()
 
 	I.p.w.Do(I.makeW)
 	if IsClient {
@@ -57,14 +49,7 @@ func (I *Int) To(i int) {
 func (I *Int) From() int {
 	go started.Do(getAndOrPostIfServer)
 
-	intDict.Lock()
-	if intDict.m == nil {
-		intDict.m = map[string]*Int{}
-	}
-	if _, found := intDict.m[I.Name]; !found {
-		intDict.m[I.Name] = I
-	}
-	intDict.Unlock()
+	I.add()
 
 	I.p.r.Do(I.makeR)
 	return bytes2int(<-I.p.r.c)

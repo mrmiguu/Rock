@@ -14,21 +14,7 @@ func (B *Bytes) makeN() {
 	B.p.n.c = make(chan int)
 }
 
-func (B *Bytes) SelSend(b []byte) chan<- interface{} {
-	send := make(chan interface{})
-	go func() { B.To(b); <-send; close(send) }()
-	return send
-}
-
-func (B *Bytes) SelRecv() <-chan []byte {
-	recv := make(chan []byte)
-	go func() { recv <- B.From(); close(recv) }()
-	return recv
-}
-
-func (B *Bytes) To(b []byte) {
-	go started.Do(getAndOrPostIfServer)
-
+func (B *Bytes) add() {
 	bytesDict.Lock()
 	if bytesDict.m == nil {
 		bytesDict.m = map[string]*Bytes{}
@@ -37,6 +23,12 @@ func (B *Bytes) To(b []byte) {
 		bytesDict.m[B.Name] = B
 	}
 	bytesDict.Unlock()
+}
+
+func (B *Bytes) To(b []byte) {
+	go started.Do(getAndOrPostIfServer)
+
+	B.add()
 
 	B.p.w.Do(B.makeW)
 	if IsClient {
@@ -57,14 +49,7 @@ func (B *Bytes) To(b []byte) {
 func (B *Bytes) From() []byte {
 	go started.Do(getAndOrPostIfServer)
 
-	bytesDict.Lock()
-	if bytesDict.m == nil {
-		bytesDict.m = map[string]*Bytes{}
-	}
-	if _, found := bytesDict.m[B.Name]; !found {
-		bytesDict.m[B.Name] = B
-	}
-	bytesDict.Unlock()
+	B.add()
 
 	B.p.r.Do(B.makeR)
 	return <-B.p.r.c
