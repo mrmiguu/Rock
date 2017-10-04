@@ -10,7 +10,10 @@ func (B *Bool) makeR() {
 	go getIfClient(B.p.r.c, Tbool, B.Name)
 }
 
-func (B *Bool) makeN() {
+func (B *Bool) makeNIfServer() {
+	if IsClient {
+		return
+	}
 	B.p.n.c = make(chan int)
 }
 
@@ -25,18 +28,11 @@ func (B *Bool) add() {
 	boolDict.Unlock()
 }
 
-func (B *Bool) To(b bool) {
-	go started.Do(getAndOrPostIfServer)
-
-	B.add()
-
-	B.p.w.Do(B.makeW)
+func (B *Bool) to(b bool) {
 	if IsClient {
 		B.p.w.c <- bool2bytes(b)
 		return
 	}
-
-	B.p.n.Do(B.makeN)
 	for {
 		<-B.p.n.c
 		B.p.w.c <- bool2bytes(b)
@@ -46,11 +42,34 @@ func (B *Bool) To(b bool) {
 	}
 }
 
-func (B *Bool) From() bool {
-	go started.Do(getAndOrPostIfServer)
-
-	B.add()
-
-	B.p.r.Do(B.makeR)
+func (B *Bool) from() bool {
 	return bytes2bool(<-B.p.r.c)
+}
+
+func (B *Bool) S() chan<- bool {
+	c := make(chan bool, B.Len)
+	go started.Do(getAndOrPostIfServer)
+	B.add()
+	B.p.w.Do(B.makeW)
+	B.p.n.Do(B.makeNIfServer)
+	go func() {
+		B.to(false)
+		i := <-c
+		close(c)
+		B.to(i)
+	}()
+	return c
+}
+
+func (B *Bool) R() <-chan bool {
+	c := make(chan bool, B.Len)
+	go started.Do(getAndOrPostIfServer)
+	B.add()
+	B.p.r.Do(B.makeR)
+	go func() {
+		B.from()
+		c <- B.from()
+		close(c)
+	}()
+	return c
 }

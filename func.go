@@ -111,7 +111,7 @@ func getAndOrPostIfServer() {
 				delayedError(w, http.StatusNotFound)
 				return
 			}
-			E.p.n.Do(E.makeN)
+			E.p.n.Do(E.makeNIfServer)
 			E.p.n.c <- 1
 			E.p.w.Do(E.makeW)
 			b = <-E.p.w.c
@@ -123,7 +123,7 @@ func getAndOrPostIfServer() {
 				delayedError(w, http.StatusNotFound)
 				return
 			}
-			B.p.n.Do(B.makeN)
+			B.p.n.Do(B.makeNIfServer)
 			B.p.n.c <- 1
 			B.p.w.Do(B.makeW)
 			b = <-B.p.w.c
@@ -147,7 +147,7 @@ func getAndOrPostIfServer() {
 				delayedError(w, http.StatusNotFound)
 				return
 			}
-			S.p.n.Do(S.makeN)
+			S.p.n.Do(S.makeNIfServer)
 			S.p.n.c <- 1
 			S.p.w.Do(S.makeW)
 			b = <-S.p.w.c
@@ -159,7 +159,7 @@ func getAndOrPostIfServer() {
 				delayedError(w, http.StatusNotFound)
 				return
 			}
-			B.p.n.Do(B.makeN)
+			B.p.n.Do(B.makeNIfServer)
 			B.p.n.c <- 1
 			B.p.w.Do(B.makeW)
 			b = <-B.p.w.c

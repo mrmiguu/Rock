@@ -10,7 +10,10 @@ func (S *String) makeR() {
 	go getIfClient(S.p.r.c, Tstring, S.Name)
 }
 
-func (S *String) makeN() {
+func (S *String) makeNIfServer() {
+	if IsClient {
+		return
+	}
 	S.p.n.c = make(chan int)
 }
 
@@ -25,18 +28,11 @@ func (S *String) add() {
 	stringDict.Unlock()
 }
 
-func (S *String) To(s string) {
-	go started.Do(getAndOrPostIfServer)
-
-	S.add()
-
-	S.p.w.Do(S.makeW)
+func (S *String) to(s string) {
 	if IsClient {
 		S.p.w.c <- []byte(s)
 		return
 	}
-
-	S.p.n.Do(S.makeN)
 	for {
 		<-S.p.n.c
 		S.p.w.c <- []byte(s)
@@ -46,11 +42,34 @@ func (S *String) To(s string) {
 	}
 }
 
-func (S *String) From() string {
-	go started.Do(getAndOrPostIfServer)
-
-	S.add()
-
-	S.p.r.Do(S.makeR)
+func (S *String) from() string {
 	return string(<-S.p.r.c)
+}
+
+func (S *String) S() chan<- string {
+	c := make(chan string, S.Len)
+	go started.Do(getAndOrPostIfServer)
+	S.add()
+	S.p.w.Do(S.makeW)
+	S.p.n.Do(S.makeNIfServer)
+	go func() {
+		S.to("")
+		i := <-c
+		close(c)
+		S.to(i)
+	}()
+	return c
+}
+
+func (S *String) R() <-chan string {
+	c := make(chan string, S.Len)
+	go started.Do(getAndOrPostIfServer)
+	S.add()
+	S.p.r.Do(S.makeR)
+	go func() {
+		S.from()
+		c <- S.from()
+		close(c)
+	}()
+	return c
 }
